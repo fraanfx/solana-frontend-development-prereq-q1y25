@@ -41,3 +41,7 @@ For each project, there is a card which contains a brief description of the proj
 Updated Repo made by: [@sturt](https://twitter.com/sturt_jack)
 OG Repo made by: [@_zebedee_](https://twitter.com/_zebedee_)
 2023 Online Course By: [helius.dev](https://www.helius.dev/)
+
+# Proof of work
+
+[Transfer TX](https://explorer.solana.com/tx/3umRonoKWxkw5VW3rSiRUwSGwvGjJbDt9AkcUTRKzELASDwqP9zS6BRqavxQSMsha3YUMztxb34XJdZFT1sSQCh6?cluster=devnet)
