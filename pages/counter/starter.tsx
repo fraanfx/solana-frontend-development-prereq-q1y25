@@ -16,6 +16,8 @@ const Starter = () => {
     const [counterKey, setCounterKey] = useState("");
     const [count, setCount] = useState(0);
     const [txSig, setTxSig] = useState("");
+    const [isClosed, setIsClosed]  = useState(true)
+
 
   const { connection } = useConnection();
   const { publicKey, wallet } = useWallet();
@@ -84,12 +86,13 @@ const Starter = () => {
       );
       setTxSig(signature);
       setCounterKey(counterKeypair.publicKey.toBase58());
+      setIsClosed(false);
     } catch (error) {
       console.log(error);
       toast.error("Transaction failed!");
     }
   };
-
+  
  //** Increment */
   const handleIncrementCounter = async () => {
     if (!connection || !publicKey) {
@@ -116,6 +119,63 @@ const Starter = () => {
       toast.error("Transaction failed!");
     }
   };
+
+  //** Decrement */
+
+  const handleDecrementCounter = async () => {
+    if (!connection || !publicKey) {
+      toast.error("Please connect your wallet.");
+      return;
+    }
+
+    const transaction = await getPreparedTransaction();
+    const instruction = await counterProgram.methods
+      .decrement()
+      .accounts({
+        counter: new PublicKey(counterKey),
+      })
+      .instruction();
+    transaction.add(instruction);
+
+    try {
+      const signature = await provider.sendAndConfirm(transaction, [], {
+        skipPreflight: true,
+      });
+      setTxSig(signature);
+    } catch (error) {
+      console.log(error);
+      toast.error("Transaction failed!");
+    }
+  };
+
+  //** Close */
+   const handleCloseCounter = async () => {
+      if (!connection || !publicKey) {
+        toast.error("Please connect your wallet.");
+        return;
+      }
+  
+     const transaction = await getPreparedTransaction();;
+      const instruction = await counterProgram.methods
+        .close()
+        .accounts({
+          payer: publicKey,
+          counter: new PublicKey(counterKey),
+        })
+        .instruction();
+      transaction.add(instruction);
+  
+      try {
+        const signature = await provider.sendAndConfirm(transaction, [], {
+          skipPreflight: true,
+        });
+        setTxSig(signature);
+        setIsClosed(true)
+      } catch (error) {
+        console.log(error);
+        toast.error("Transaction failed!");
+      }
+    };
 
   //** Collect info to display in UI */
 
@@ -150,7 +210,7 @@ const Starter = () => {
                 e.preventDefault();
                 handleInitializeCounter();
               }}
-              disabled={!publicKey}
+              disabled={!publicKey || !isClosed}
               className={`disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#fa6ece] bg-[#fa6ece] 
                 rounded-lg w-auto py-1 font-semibold transition-all duration-200 hover:bg-transparent 
                 border-2 border-transparent hover:border-[#fa6ece]`}
@@ -165,14 +225,47 @@ const Starter = () => {
                 e.preventDefault();
                 handleIncrementCounter();
               }}
-              disabled={!publicKey || !counterKey}
+              disabled={!publicKey || !counterKey  || isClosed}
               className={`disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#fa6ece] bg-[#fa6ece] 
                 rounded-lg w-auto py-1 font-semibold transition-all duration-200 hover:bg-transparent 
                 border-2 border-transparent hover:border-[#fa6ece]`}
             >
               Increment Counter
             </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDecrementCounter();
+              }}
+              disabled={!publicKey || !counterKey || isClosed || outputs[0].dependency < 1}
+              className={`disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#fa6ece] bg-[#fa6ece] 
+                rounded-lg w-auto py-1 font-semibold transition-all duration-200 hover:bg-transparent 
+                border-2 border-transparent hover:border-[#fa6ece]`}
+            >
+              Decrement Counter
+            </button>
           </div>
+          <div className="">
+          <div className="flex flex-col gap-2 mt-2">
+
+        
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleCloseCounter();
+              }}
+              disabled={!publicKey || !counterKey || isClosed}
+              className={`disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#fa6ece] bg-[#fa6ece] 
+                rounded-lg w-auto py-1 font-semibold transition-all duration-200 hover:bg-transparent 
+                border-2 border-transparent hover:border-[#fa6ece]`}
+            >
+              Close Counter
+            </button>
+
+            </div>
+          </div>
+
+          
           <div className="text-sm font-semibold mt-8 bg-[#222524] border-2 border-gray-500 rounded-lg p-2">
             <ul className="p-2">
               {outputs.map(({ title, dependency, href }, index) => (
